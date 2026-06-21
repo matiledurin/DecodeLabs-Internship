@@ -56,9 +56,9 @@ By understanding the patterns behind churn, a business can identify at-risk cust
 **Business implication:** A targeted retention strategy should focus on converting month-to-month customers to longer-term contracts through incentives — for example, offering a discounted annual plan to customers who have been on month-to-month billing for more than 6 months without churning.
 
 **Financial profile:**
-- Average tenure: ~32 months (range: 1–72 months)
-- Average monthly charges: ~$64.80 (range: $18.25–$118.75)
-- ~16% of the customer base are senior citizens
+- Average tenure: 32 months (range: 1–72 months)
+- Average monthly charges: $64.80 (range: $18.25–$118.75)
+- 16% of the customer base are senior citizens
 
 ---
 
