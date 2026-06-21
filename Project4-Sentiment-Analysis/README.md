@@ -1,7 +1,7 @@
 # Project 4 — IMDB Sentiment Analysis (NLP)
 
 **Author:** Matile Durin Mohwaduba  
-**Organisation:** DecodeLabs Data Science  
+**Organisation:** DecodeLabs Data Science 
 **Type:** Natural Language Processing · Text Classification · Binary Sentiment Analysis  
 
 ---
@@ -129,7 +129,7 @@ TfidfVectorizer(
 
 **Why Naive Bayes?**
 
-Naive Bayes assumes all words are independent — which is not strictly true in language. Yet it achieves ~87% accuracy on 50,000 real reviews. This demonstrates a core data science principle: **a simpler model with good preprocessing often outperforms a complex model with poor data preparation.**
+Naive Bayes assumes all words are independent — which is not strictly true in language. Yet it achieves 87% accuracy on 50,000 real reviews. This demonstrates a core data science principle: **a simpler model with good preprocessing often outperforms a complex model with poor data preparation.**
 
 ---
 
@@ -157,26 +157,36 @@ Naive Bayes assumes all words are independent — which is not strictly true in 
 Project4-Sentiment-Analysis/
 ├── README.md                              # Project documentation (this file)
 ├── PROJECT_4_DECODELABS_MATILE_.ipynb    # Main notebook
-├── IMDB_Dataset.csv                       # Full dataset — 50,000 reviews (no download needed)
+├── IMDB_Dataset_Sample_1000.csv          # Sample dataset — 500 positive + 500 negative reviews
 └── project4_presentation.html            # Interactive presentation with live sentiment demo
 ```
 
-> **No Kaggle account needed.** The dataset is included directly in this repository. Just download `IMDB_Dataset.csv` and place it in the same folder as the notebook.
+---
+
+## Dataset
+
+| | |
+|---|---|
+| **Full dataset** | 50,000 reviews — [Download from Kaggle](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews) |
+| **Sample included** | `IMDB_Dataset_Sample_1000.csv` — 1,000 reviews (500 positive, 500 negative) uploaded directly to this repository |
+
+> The full 66MB dataset exceeds GitHub's file size limit so it is hosted on Kaggle. The 1,000 row sample included here lets you explore the exact data structure and format without any downloads. To run the full notebook, download the complete dataset from Kaggle and place it in the same folder as the notebook.
 
 ---
 
 ## How to Run
 
 1. Download all files from this folder to your computer
-2. Open `PROJECT_4_DECODELABS_MATILE_.ipynb` in **Jupyter Notebook**, **JupyterLab**, or **Google Colab**
-3. Run the NLTK downloads cell first (required on first run):
+2. Download the full dataset from [Kaggle](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews) and place `IMDB_Dataset.csv` in the same folder
+3. Open `PROJECT_4_DECODELABS_MATILE_.ipynb` in **Jupyter Notebook**, **JupyterLab**, or **Google Colab**
+4. Run the NLTK downloads cell first (required on first run):
 ```python
 import nltk
 nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('averaged_perceptron_tagger')
 ```
-4. Run all cells in order — the notebook loads `IMDB_Dataset.csv` from the same folder automatically
+5. Run all cells in order
 
 **Dependencies:**
 ```bash
@@ -205,7 +215,7 @@ pip install pandas numpy nltk scikit-learn matplotlib seaborn
 - Naive Bayes treats all words as independent — it cannot model complex syntactic relationships
 - Sarcasm and irony remain difficult for any bag-of-words model to detect
 - The model is trained on English movie reviews — performance may degrade on other domains or languages
-- State-of-the-art models (BERT, RoBERTa) achieve ~95% on this benchmark vs ~87% for this approach — the gap represents the cost of simplicity and the benefit of deeper architectures
+- State-of-the-art models (BERT, RoBERTa) achieve 95% on this benchmark vs 87% for this approach — the gap represents the cost of simplicity and the benefit of deeper architectures
 
 ---
 
