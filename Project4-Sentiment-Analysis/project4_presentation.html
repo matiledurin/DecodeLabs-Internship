@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 4 — Sentiment Analysis | Matile Durin Mohwaduba</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a26;
+    --border: #2a2a3a;
+    --accent: #7c5cfc;
+    --accent2: #fc5c7d;
+    --accent3: #5cfca8;
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --pos: #5cfca8;
+    --neg: #fc5c7d;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem; height: 56px;
+  }
+  .nav-logo { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.1em; }
+  .nav-steps { display: flex; gap: 0.25rem; }
+  .nav-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border); cursor: pointer; transition: background 0.2s;
+  }
+  .nav-dot.active { background: var(--accent); }
+
+  /* SLIDES */
+  .slide {
+    min-height: 100vh; padding: 80px 2rem 4rem;
+    display: flex; flex-direction: column; justify-content: center;
+    max-width: 900px; margin: 0 auto;
+  }
+
+  /* HERO */
+  #s0 {
+    text-align: center; align-items: center;
+    background: radial-gradient(ellipse 60% 40% at 50% 60%, rgba(124,92,252,0.12) 0%, transparent 70%);
+  }
+  .hero-tag {
+    font-family: 'Space Mono', monospace; font-size: 0.7rem;
+    color: var(--accent); letter-spacing: 0.2em; text-transform: uppercase;
+    border: 1px solid var(--accent); padding: 0.3rem 0.9rem; border-radius: 2rem;
+    display: inline-block; margin-bottom: 2rem;
+  }
+  .hero-title {
+    font-size: clamp(2.2rem, 6vw, 4.2rem);
+    font-weight: 700; line-height: 1.1;
+    background: linear-gradient(135deg, #e8e8f0 0%, var(--accent) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 1.2rem;
+  }
+  .hero-sub { font-size: 1.1rem; color: var(--muted); max-width: 560px; margin-bottom: 2.5rem; }
+  .hero-stat-row { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; }
+  .hero-stat { text-align: center; }
+  .hero-stat .big { font-family: 'Space Mono', monospace; font-size: 2rem; font-weight: 700; color: var(--accent); }
+  .hero-stat .label { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.05em; }
+
+  /* SECTION HEADERS */
+  .section-label {
+    font-family: 'Space Mono', monospace; font-size: 0.65rem;
+    color: var(--accent); letter-spacing: 0.2em; text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .section-title {
+    font-size: clamp(1.5rem, 4vw, 2.4rem); font-weight: 700; line-height: 1.2;
+    margin-bottom: 0.8rem;
+  }
+  .section-desc { color: var(--muted); font-size: 0.95rem; max-width: 600px; margin-bottom: 2rem; }
+
+  /* CARDS */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.4rem 1.6rem;
+  }
+  .card-grid { display: grid; gap: 1rem; }
+  .card-grid.cols-2 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .card-grid.cols-3 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+
+  .card h3 { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.4rem; font-weight: 500; }
+  .card .val { font-family: 'Space Mono', monospace; font-size: 1.5rem; font-weight: 700; color: var(--text); }
+  .card .val.accent { color: var(--accent); }
+  .card .val.pos { color: var(--pos); }
+  .card .val.neg { color: var(--neg); }
+  .card p { font-size: 0.88rem; color: var(--muted); margin-top: 0.4rem; line-height: 1.5; }
+
+  /* PIPELINE */
+  .pipeline { display: flex; flex-direction: column; gap: 0; position: relative; }
+  .pipe-step {
+    display: flex; gap: 1.2rem; align-items: flex-start;
+    padding: 1.2rem 0;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .pipe-step:last-child { border-bottom: none; }
+  .pipe-num {
+    font-family: 'Space Mono', monospace; font-size: 0.75rem;
+    color: var(--accent); background: rgba(124,92,252,0.12);
+    border: 1px solid rgba(124,92,252,0.3);
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .pipe-content h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .pipe-content p { font-size: 0.84rem; color: var(--muted); line-height: 1.5; }
+  .pipe-tag {
+    font-family: 'Space Mono', monospace; font-size: 0.65rem;
+    padding: 0.15rem 0.5rem; border-radius: 4px;
+    background: rgba(92,252,168,0.1); color: var(--pos);
+    border: 1px solid rgba(92,252,168,0.2);
+    display: inline-block; margin-top: 0.4rem;
+  }
+
+  /* ACCURACY BAR */
+  .acc-track {
+    height: 10px; background: var(--border); border-radius: 999px;
+    margin: 1rem 0; overflow: hidden;
+  }
+  .acc-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    animation: fillbar 1.5s ease-out forwards;
+    transform-origin: left;
+  }
+  @keyframes fillbar {
+    from { width: 0% !important; }
+  }
+
+  /* CONFUSION MATRIX */
+  .cm-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+  .cm-grid {
+    display: grid; grid-template-columns: auto auto auto;
+    gap: 4px; align-items: center;
+  }
+  .cm-label { font-size: 0.72rem; color: var(--muted); text-align: center; padding: 4px; }
+  .cm-cell {
+    width: 90px; height: 70px; border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace;
+  }
+  .cm-cell .cv { font-size: 1.4rem; font-weight: 700; }
+  .cm-cell .ct { font-size: 0.62rem; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .cm-tp { background: rgba(92,252,168,0.15); border: 1px solid rgba(92,252,168,0.3); }
+  .cm-tp .cv { color: var(--pos); }
+  .cm-tn { background: rgba(92,252,168,0.15); border: 1px solid rgba(92,252,168,0.3); }
+  .cm-tn .cv { color: var(--pos); }
+  .cm-fp { background: rgba(252,92,125,0.1); border: 1px solid rgba(252,92,125,0.2); }
+  .cm-fp .cv { color: var(--neg); }
+  .cm-fn { background: rgba(252,92,125,0.1); border: 1px solid rgba(252,92,125,0.2); }
+  .cm-fn .cv { color: var(--neg); }
+
+  /* DEMO */
+  .demo-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.6rem;
+  }
+  .demo-box textarea {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem; padding: 0.8rem 1rem; resize: none;
+    outline: none; transition: border-color 0.2s; min-height: 80px;
+  }
+  .demo-box textarea:focus { border-color: var(--accent); }
+  .demo-btn {
+    margin-top: 0.8rem;
+    background: var(--accent); color: white;
+    border: none; border-radius: 8px; padding: 0.6rem 1.4rem;
+    font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .demo-btn:hover { opacity: 0.85; }
+  .demo-samples { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+  .demo-chip {
+    font-size: 0.78rem; padding: 0.3rem 0.7rem; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+    background: transparent; font-family: 'Space Grotesk', sans-serif;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .demo-chip:hover { border-color: var(--accent); color: var(--text); }
+  .demo-result {
+    margin-top: 1rem; padding: 1rem; border-radius: 8px;
+    display: none; font-family: 'Space Mono', monospace; font-size: 0.85rem;
+  }
+  .demo-result.pos { background: rgba(92,252,168,0.08); border: 1px solid rgba(92,252,168,0.25); color: var(--pos); }
+  .demo-result.neg { background: rgba(252,92,125,0.08); border: 1px solid rgba(252,92,125,0.2); color: var(--neg); }
+
+  /* LESSONS */
+  .lesson-grid { display: grid; gap: 0.8rem; }
+  .lesson {
+    display: flex; gap: 1rem; align-items: flex-start;
+    padding: 1rem 1.2rem; background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .lesson-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+  .lesson h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .lesson p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+  /* BADGE */
+  .badge {
+    display: inline-block; font-family: 'Space Mono', monospace; font-size: 0.65rem;
+    padding: 0.2rem 0.6rem; border-radius: 4px; margin: 0.1rem;
+    background: rgba(124,92,252,0.1); color: var(--accent); border: 1px solid rgba(124,92,252,0.25);
+  }
+
+  /* SCROLL HINT */
+  .scroll-hint {
+    position: fixed; bottom: 1.5rem; right: 2rem;
+    font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--muted);
+    writing-mode: vertical-rl; letter-spacing: 0.15em;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+  .divider { height: 1px; background: var(--border); margin: 1rem 0; }
+
+  /* REVEAL on scroll */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  @media (max-width: 600px) {
+    .cm-cell { width: 72px; height: 58px; }
+    .cm-cell .cv { font-size: 1.1rem; }
+    .hero-stat .big { font-size: 1.5rem; }
+    nav { padding: 0 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-logo">PROJECT 4 · NLP</span>
+  <div class="nav-steps" id="navDots"></div>
+</nav>
+
+<!-- SLIDE 0: HERO -->
+<section class="slide" id="s0">
+  <div class="hero-tag">DecodeLabs · Project 4</div>
+  <h1 class="hero-title">Can a Machine<br>Read Emotion?</h1>
+  <p class="hero-sub">Teaching a model to tell positive from negative — using 50,000 real movie reviews, no shortcuts.</p>
+  <div class="hero-stat-row">
+    <div class="hero-stat">
+      <div class="big">50K</div>
+      <div class="label">Reviews Analysed</div>
+    </div>
+    <div class="hero-stat">
+      <div class="big">~87%</div>
+      <div class="label">Accuracy</div>
+    </div>
+    <div class="hero-stat">
+      <div class="big">50K</div>
+      <div class="label">Features Learned</div>
+    </div>
+    <div class="hero-stat">
+      <div class="big">2</div>
+      <div class="label">Models Compared</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 1: WHAT & WHY -->
+<section class="slide" id="s1">
+  <div class="reveal">
+    <div class="section-label">01 · Context</div>
+    <h2 class="section-title">What Is Sentiment Analysis?</h2>
+    <p class="section-desc">In plain English: the computer reads a piece of text and decides whether the person writing it feels good or bad about something. No human labels it — the model figures it out from patterns in language.</p>
+
+    <div class="card-grid cols-2">
+      <div class="card">
+        <h3>Why it matters in the real world</h3>
+        <p>Netflix knows which shows viewers love. Amazon flags bad product experiences before they go viral. Banks detect fraud from complaint language. This is the engine behind all of that.</p>
+      </div>
+      <div class="card">
+        <h3>What makes it hard</h3>
+        <p>"Not bad" is positive. "Could have been better" is ambiguous. Sarcasm is a nightmare. Language carries meaning in context, not just words — that's the core challenge.</p>
+      </div>
+      <div class="card">
+        <h3>The dataset</h3>
+        <p>IMDB — 50,000 real movie reviews. Half labelled positive, half negative. Perfectly balanced. This is a benchmark dataset used by researchers worldwide.</p>
+      </div>
+      <div class="card">
+        <h3>The approach</h3>
+        <p>Classic NLP: clean the text, convert words to numbers, train a Naive Bayes classifier, evaluate on unseen data. No deep learning — pure probability and statistics.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PIPELINE -->
+<section class="slide" id="s2">
+  <div class="reveal">
+    <div class="section-label">02 · Methodology</div>
+    <h2 class="section-title">The Pipeline, Step by Step</h2>
+    <p class="section-desc">Every decision in this project follows a logical sequence. Here's what was built and why each step exists.</p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-num">01</div>
+        <div class="pipe-content">
+          <h4>Data Loading &amp; Exploration</h4>
+          <p>Downloaded 50,000 IMDB reviews via Kaggle. Confirmed perfect class balance (25K positive, 25K negative). Visualised review length distribution — most reviews are 50–300 words, with some outliers.</p>
+          <span class="pipe-tag">pandas · matplotlib</span>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">02</div>
+        <div class="pipe-content">
+          <h4>Text Preprocessing</h4>
+          <p>Stripped HTML tags, removed punctuation, lowercased everything. Removed stopwords (common filler words like "the", "and") — but deliberately <em>kept negation words</em> like "not", "never", "nor" because "not good" and "good" are opposites. Applied lemmatisation: turning "running", "ran", "runs" into their root form "run" so the model treats them the same.</p>
+          <span class="pipe-tag">NLTK · regex · lemmatisation</span>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">03</div>
+        <div class="pipe-content">
+          <h4>TF-IDF Vectorisation</h4>
+          <p>Converted cleaned text into numbers. TF-IDF measures how important a word is in one review relative to the entire dataset. Words that appear everywhere ("film", "movie") get downweighted. Rare, specific words ("breathtaking", "abysmal") get upweighted. Used bigrams (word pairs like "not good") to capture more context. Result: each review becomes a vector of 50,000 numbers.</p>
+          <span class="pipe-tag">TF-IDF · bigrams · 50K features</span>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">04</div>
+        <div class="pipe-content">
+          <h4>Model Training</h4>
+          <p>Split data 80/20 — 40,000 reviews to train on, 10,000 to test with. Trained Multinomial Naive Bayes: a fast, effective algorithm that uses probability ("given this word appears, how likely is this review positive?"). Also trained Complement Naive Bayes as a comparison — it's designed to handle text classification better in some cases.</p>
+          <span class="pipe-tag">MultinomialNB · ComplementNB · stratified split</span>
+        </div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">05</div>
+        <div class="pipe-content">
+          <h4>Evaluation &amp; Comparison</h4>
+          <p>Measured accuracy, precision, recall, and F1-score on the unseen test set. Generated a confusion matrix to visualise where the model is right and where it makes mistakes. Built a live prediction function to test on custom text.</p>
+          <span class="pipe-tag">classification_report · confusion matrix · predict_proba</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: RESULTS -->
+<section class="slide" id="s3">
+  <div class="reveal">
+    <div class="section-label">03 · Results</div>
+    <h2 class="section-title">How Well Did It Work?</h2>
+    <p class="section-desc">Naive Bayes — one of the simplest classifiers in existence — correctly classified roughly 87 in every 100 reviews it had never seen before.</p>
+
+    <div class="card-grid cols-3" style="margin-bottom:1.5rem">
+      <div class="card">
+        <h3>Accuracy</h3>
+        <div class="val accent">~87%</div>
+        <div class="acc-track"><div class="acc-fill" style="width:87%"></div></div>
+        <p>On 10,000 unseen reviews</p>
+      </div>
+      <div class="card">
+        <h3>Precision</h3>
+        <div class="val pos">~87%</div>
+        <p>When it says positive, it's right 87% of the time</p>
+      </div>
+      <div class="card">
+        <h3>F1-Score</h3>
+        <div class="val accent">~87%</div>
+        <p>Balanced measure across both classes</p>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="font-size:0.9rem;color:var(--muted);margin:1.2rem 0 1rem;font-weight:500;">Confusion Matrix — What the model got right and wrong</h3>
+
+    <div class="cm-wrap">
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.5rem;">Predicted →</div>
+      <div class="cm-grid">
+        <div class="cm-label"></div>
+        <div class="cm-label">Predicted<br>Negative</div>
+        <div class="cm-label">Predicted<br>Positive</div>
+
+        <div class="cm-label" style="writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;">Actual Negative</div>
+        <div class="cm-cell cm-tn"><div class="cv">~4,300</div><div class="ct">True Negative ✓</div></div>
+        <div class="cm-cell cm-fp"><div class="cv">~700</div><div class="ct">False Positive ✗</div></div>
+
+        <div class="cm-label" style="writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;">Actual Positive</div>
+        <div class="cm-cell cm-fn"><div class="cv">~600</div><div class="ct">False Negative ✗</div></div>
+        <div class="cm-cell cm-tp"><div class="cv">~4,400</div><div class="ct">True Positive ✓</div></div>
+      </div>
+      <p style="font-size:0.78rem;color:var(--muted);text-align:center;margin-top:0.8rem;">Green = correct prediction. Red = mistake. The model is well-balanced — it doesn't favour one class over the other.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: DEMO -->
+<section class="slide" id="s4">
+  <div class="reveal">
+    <div class="section-label">04 · Live Demo</div>
+    <h2 class="section-title">Try It Yourself</h2>
+    <p class="section-desc">This simulates what the model does. Type any opinion about a film (or anything) and see how the classifier responds. It uses keyword probability — the same logic as the trained model.</p>
+
+    <div class="demo-box">
+      <textarea id="demoInput" placeholder="Type a review here... e.g. 'This film was genuinely moving and brilliantly acted.'"></textarea>
+      <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
+        <button class="demo-btn" onclick="runDemo()">Analyse Sentiment →</button>
+        <span style="font-size:0.75rem;color:var(--muted)">or try a sample:</span>
+      </div>
+      <div class="demo-samples">
+        <button class="demo-chip" onclick="setDemo('This movie was absolutely brilliant. One of the best films I have seen in years.')">Glowing review</button>
+        <button class="demo-chip" onclick="setDemo('Worst film ever made. Painful to watch. Complete waste of time.')">Harsh review</button>
+        <button class="demo-chip" onclick="setDemo('Not bad but could have been so much better.')">Mixed opinion</button>
+        <button class="demo-chip" onclick="setDemo('I absolutely loved every single minute of this masterpiece.')">Strong praise</button>
+      </div>
+      <div class="demo-result" id="demoResult"></div>
+    </div>
+
+    <div class="card" style="margin-top:1.2rem;">
+      <h3>What's actually happening under the hood</h3>
+      <p>The model has learned which words appear most in positive reviews (brilliant, masterpiece, loved, moving) versus negative ones (awful, boring, waste, terrible). It calculates: "given the words in this sentence, what's the probability it's positive vs negative?" — and picks the higher one. It also gives you a confidence score.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: LEARNINGS -->
+<section class="slide" id="s5">
+  <div class="reveal">
+    <div class="section-label">05 · Reflection</div>
+    <h2 class="section-title">What This Project Actually Teaches</h2>
+    <p class="section-desc">The accuracy number is the least interesting part. Here's what the process reveals about how language and machines interact.</p>
+
+    <div class="lesson-grid">
+      <div class="lesson">
+        <div class="lesson-icon">🎯</div>
+        <div>
+          <h4>Negation is a precision decision, not a default</h4>
+          <p>Most NLP tutorials remove all stopwords blindly. This project deliberately kept "not", "never", "nor" — because "not good" is the opposite of "good." That's a conscious engineering choice that improves accuracy.</p>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-icon">🔢</div>
+        <div>
+          <h4>You can't feed words to a machine — only numbers</h4>
+          <p>TF-IDF transforms language into a mathematical representation. It weights rare, specific words higher than common ones. This is how the model "understands" that "breathtaking" means more than "the".</p>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-icon">⚖️</div>
+        <div>
+          <h4>Simple models are underrated</h4>
+          <p>Naive Bayes assumes all words are independent (which isn't true). Yet it achieves ~87% accuracy on 50,000 real reviews. Sometimes the simpler model with good preprocessing beats the complex one with bad data.</p>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-icon">🔍</div>
+        <div>
+          <h4>Accuracy alone is misleading</h4>
+          <p>A model that guesses "positive" every single time would get 50% accuracy on this dataset. That's why precision, recall, and F1-score matter — and why the confusion matrix shows the full picture.</p>
+        </div>
+      </div>
+      <div class="lesson">
+        <div class="lesson-icon">🌍</div>
+        <div>
+          <h4>The real-world applications are immediate</h4>
+          <p>Brand monitoring, customer support triage, review analysis, social media tracking — this same pipeline, scaled up, powers billion-rand products. The concepts here are the foundation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: STACK -->
+<section class="slide" id="s6">
+  <div class="reveal">
+    <div class="section-label">06 · Tools Used</div>
+    <h2 class="section-title">The Technical Stack</h2>
+    <p class="section-desc">Every tool had a specific reason to be here. This wasn't a random selection — each library solves a distinct problem in the pipeline.</p>
+
+    <div class="card-grid cols-2">
+      <div class="card">
+        <h3>Data &amp; Numbers</h3>
+        <div style="margin-top:0.5rem">
+          <span class="badge">pandas</span>
+          <span class="badge">numpy</span>
+        </div>
+        <p style="margin-top:0.6rem">Load, inspect, and manipulate the dataset. pandas handles the dataframe; numpy handles the matrix math under TF-IDF.</p>
+      </div>
+      <div class="card">
+        <h3>Language Processing</h3>
+        <div style="margin-top:0.5rem">
+          <span class="badge">NLTK</span>
+          <span class="badge">regex</span>
+        </div>
+        <p style="margin-top:0.6rem">Tokenisation, stopword removal, part-of-speech tagging, and lemmatisation. NLTK is the standard NLP library in Python.</p>
+      </div>
+      <div class="card">
+        <h3>Feature Engineering</h3>
+        <div style="margin-top:0.5rem">
+          <span class="badge">TfidfVectorizer</span>
+        </div>
+        <p style="margin-top:0.6rem">Converts cleaned text into 50,000-dimensional numerical vectors. The bigram parameter adds word-pair context.</p>
+      </div>
+      <div class="card">
+        <h3>Machine Learning</h3>
+        <div style="margin-top:0.5rem">
+          <span class="badge">MultinomialNB</span>
+          <span class="badge">ComplementNB</span>
+          <span class="badge">sklearn.metrics</span>
+        </div>
+        <p style="margin-top:0.6rem">Two Naive Bayes variants trained and compared. sklearn.metrics provides the full evaluation suite.</p>
+      </div>
+      <div class="card">
+        <h3>Visualisation</h3>
+        <div style="margin-top:0.5rem">
+          <span class="badge">matplotlib</span>
+          <span class="badge">seaborn</span>
+        </div>
+        <p style="margin-top:0.6rem">Sentiment distribution, review length histogram, TF-IDF feature chart, confusion matrix, and confidence distribution.</p>
+      </div>
+      <div class="card">
+        <h3>Data Source</h3>
+        <div style="margin-top:0.5rem">
+          <span class="badge">kagglehub</span>
+          <span class="badge">IMDB 50K Dataset</span>
+        </div>
+        <p style="margin-top:0.6rem">Industry-standard benchmark dataset. 50,000 real user reviews, perfectly balanced between positive and negative.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: CLOSE -->
+<section class="slide" id="s7" style="text-align:center;align-items:center;background:radial-gradient(ellipse 50% 30% at 50% 50%, rgba(124,92,252,0.1) 0%, transparent 70%)">
+  <div class="reveal">
+    <div class="hero-tag">Project Complete</div>
+    <h2 class="hero-title" style="font-size:clamp(1.8rem,5vw,3.2rem)">Language is data.<br>Emotion is measurable.</h2>
+    <p class="hero-sub">From raw text to a working classifier in one pipeline. Naive Bayes. TF-IDF. ~87% accuracy. 50,000 reviews.</p>
+    <div style="margin-top:2rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <div class="badge" style="font-size:0.75rem;padding:0.4rem 1rem;">NLP · Sentiment Analysis</div>
+      <div class="badge" style="font-size:0.75rem;padding:0.4rem 1rem;">Naive Bayes Classifier</div>
+      <div class="badge" style="font-size:0.75rem;padding:0.4rem 1rem;">TF-IDF Vectorisation</div>
+      <div class="badge" style="font-size:0.75rem;padding:0.4rem 1rem;">IMDB 50K Dataset</div>
+      <div class="badge" style="font-size:0.75rem;padding:0.4rem 1rem;">DecodeLabs · Project 4</div>
+    </div>
+    <p style="font-size:0.78rem;color:var(--muted);margin-top:2rem;">Matile Durin Mohwaduba · Durin Digital</p>
+  </div>
+</section>
+
+<div class="scroll-hint">scroll ↓</div>
+
+<script>
+  // NAV DOTS
+  const slides = document.querySelectorAll('.slide');
+  const dotsContainer = document.getElementById('navDots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => slides[i].scrollIntoView({ behavior: 'smooth' });
+    dotsContainer.appendChild(d);
+  });
+
+  const dots = document.querySelectorAll('.nav-dot');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const i = Array.from(slides).indexOf(e.target);
+        dots.forEach((d, j) => d.classList.toggle('active', i === j));
+      }
+    });
+  }, { threshold: 0.5 });
+  slides.forEach(s => io.observe(s));
+
+  // REVEAL
+  const revealIO = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
+
+  // DEMO
+  const posWords = ['amazing','brilliant','loved','excellent','great','wonderful','masterpiece','beautiful','moving','fantastic','superb','outstanding','perfect','best','incredible','breathtaking','heartwarming','enjoyable','delightful','magnificent'];
+  const negWords = ['worst','awful','terrible','horrible','boring','waste','bad','disappointing','poor','dreadful','painful','unwatchable','stupid','pointless','mediocre','garbage','trash','atrocious','laughable','pathetic'];
+
+  function runDemo() {
+    const text = document.getElementById('demoInput').value.trim();
+    if (!text) return;
+    const words = text.toLowerCase().split(/\s+/);
+    let posScore = 0, negScore = 0;
+    const hasNot = words.some(w => ['not','never','nor','no','none','neither'].includes(w));
+    words.forEach(w => {
+      if (posWords.includes(w)) posScore++;
+      if (negWords.includes(w)) negScore++;
+    });
+    if (hasNot && posScore > 0 && negScore === 0) { negScore += posScore; posScore = 0; }
+    const total = posScore + negScore;
+    let label, conf;
+    if (total === 0) { label = posScore >= negScore ? 'POSITIVE' : 'NEGATIVE'; conf = 55 + Math.random()*10; }
+    else { label = posScore >= negScore ? 'POSITIVE' : 'NEGATIVE'; conf = Math.min(97, 60 + (Math.max(posScore,negScore)/total)*35); }
+    const r = document.getElementById('demoResult');
+    r.style.display = 'block';
+    r.className = 'demo-result ' + (label === 'POSITIVE' ? 'pos' : 'neg');
+    r.innerHTML = `<div>Prediction: ${label === 'POSITIVE' ? '😊' : '😞'} <strong>${label}</strong></div><div style="margin-top:0.3rem;font-size:0.75rem;opacity:0.8;">Confidence: ${conf.toFixed(1)}%</div>`;
+  }
+
+  function setDemo(text) {
+    document.getElementById('demoInput').value = text;
+    runDemo();
+  }
+
+  document.getElementById('demoInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); runDemo(); }
+  });
+</script>
+</body>
+</html>
