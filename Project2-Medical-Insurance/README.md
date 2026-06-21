@@ -91,8 +91,8 @@ The scatter plot reveals three distinct pricing bands:
 | Random state | 42 |
 
 **Interpretation:**
-- **R² of ~86%** means the model explains 86% of the variation in insurance charges across customers. The remaining 14% is driven by factors not in this dataset (individual medical history, specific diagnoses).
-- **MAE of ~$2,500** means predictions are within $2,500 of actual charges on average — strong precision given charges range from ~$1,100 to ~$63,770.
+- **R² of 86%** means the model explains 86% of the variation in insurance charges across customers. The remaining 14% is driven by factors not in this dataset (individual medical history, specific diagnoses).
+- **MAE of $2,500** means predictions are within $2,500 of actual charges on average — strong precision given charges range from $1,100 to $63,770.
 
 ### Why Random Forest?
 - Handles mixed numeric and categorical features effectively
